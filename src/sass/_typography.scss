@@ -1,0 +1,19 @@
+//*-----------------------------
+//  typography variables
+//-----------------------------*/
+
+$body-font-color    : #373737;
+$body-font-family   : sans-serif;
+$heading-font-family: Georgia, serif;
+
+
+body {
+    @include font-smoothing;
+
+    color: $body-font-color;
+    font-family: $body-font-family;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: $heading-font-family;
+}

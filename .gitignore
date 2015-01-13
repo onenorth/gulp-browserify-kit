@@ -1,0 +1,11 @@
+.DS_Store
+.sass-cache
+build
+Desktop.ini
+node_modules
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+
+## only for master branch
+[Gg]ulp/
