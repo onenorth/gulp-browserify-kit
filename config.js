@@ -13,21 +13,6 @@ var src                  = 'app',
 
 module.exports = (function(config) {
 
-    var path = require('path');
-
-    // project paths
-    config.paths = (function(p) {
-        p.root      = process.cwd();
-        p.src       = path.join(p.root, 'src'); // sources
-        p.out       = path.join(p.root, 'out'); // output
-        p.site      = path.join(p.src,  'site'); // site structure and documents
-        p.templates = path.join(p.src,  'templates'); // templates
-        p.assetsDev = path.join(p.src,  'assets-dev'); // unprocessed assets
-        p.assets    = path.join(p.site, 'assets'); // static assets within site
-        p.assetsOut = path.join(p.out,  'assets'); // assets within output
-        return p;
-    })({});
-
     // gulp default params
     config.gulpParams = {
         environment: 'development'
