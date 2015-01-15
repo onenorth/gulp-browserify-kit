@@ -1,3 +1,4 @@
+'use strict';
 /*
  Entry point for the my-page.js bundle
 

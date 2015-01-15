@@ -1,3 +1,5 @@
+'use strict';
+
 var _ = require('underscore');
 var Backbone = require('backbone');
 
@@ -31,5 +33,3 @@ Backbone.$ = require('jquery');
 
 
 }());
-
-console.log('LOADED: global.js');
