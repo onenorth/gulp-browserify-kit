@@ -112,12 +112,7 @@ module.exports = (function(config) {
 
     config.images = {
         src:     srcAssets + '/images/**/*',
-        dest:    developmentAssets + '/images',
-        options: {
-            useProgressive: true,
-            optimizationLevel: production ? 3 : 1,
-            svgoPlugins: [{ removeViewBox: false }]
-        }
+        dest:    developmentAssets + '/images'
     };
 
     config.webp = {
