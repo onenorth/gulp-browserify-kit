@@ -312,7 +312,7 @@ module.exports = (function(config) {
         smartypants: false
     };
 
-    // config syync options
+    // config sync options
     // https://github.com/danlevan/gulp-config-sync
     config.configSync = {
         fields: [
