@@ -1,6 +1,6 @@
-# gulp + browserify starter
+# gulp + browserify starter kit
 
-Includes example tasks for:
+Illustrates usage of:
 
 * BrowserSync for static server + live reloading
 * Browserify (with shim)
