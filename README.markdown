@@ -2,14 +2,17 @@
 
 Includes example tasks for:
 
-* Browserify (with shim)
-* Watchify (caching for faster browserify builds)
-* Sass (using libsass + autoprefixer)
 * BrowserSync for static server + live reloading
-* Image Optimization
-* Non-CommonJS shimming (e.g., jQuery Plugin)
-* Multiple bundles with shared dependencies
-* Error handling (optional Notification Center for MacOS)
+* Browserify (with shim)
+* Multiple browserify bundles with shared dependencies
+* Non-CommonJS shimming (jQuery plugin)
+* Watchify (caching for faster browserify builds)
+* Sass/SCSS (using libsass + autoprefixer)
+* CSS optimization (mqpacker + csswring)
+* Automatic sprite generation (spritesmith)
+* Image optimization (imagemin + base64)
+* Gulp task error handling (optional Notification Center for MacOS)
+* Simple Production deployment (rsync)
 
 
 ## Installing dependencies
