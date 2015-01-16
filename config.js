@@ -62,20 +62,22 @@ module.exports = (function(config) {
     // autoprefixer options
     config.autoprefixer = {
         browsers: [
-            'last 2 versions',
-            'safari 5',
-            'ie 8',
-            'ie 9',
-            'opera 12.1',
-            'ios 6',
-            'android 4'
+            'Android 2.3',
+            'Android >= 4',
+            'Chrome >= 20',
+            'Firefox >= 24', // Firefox 24 is the latest ESR
+            'Explorer >= 8',
+            'iOS >= 6',
+            'Opera >= 12',
+            'Safari >= 6'
         ],
         cascade: true
     };
 
     // csswring options
     config.csswring = {
-        preserveHacks: true
+        preserveHacks: true,
+        removeAllComments: true
     };
 
     config.browserify = {

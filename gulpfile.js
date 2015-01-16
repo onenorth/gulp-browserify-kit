@@ -12,6 +12,7 @@ var _               = require('lodash'),
     del             = require('del'),
     minimist        = require('minimist'),
     browserSync     = require('browser-sync'),
+    autoprefixer    = require('autoprefixer-core'),
     mqpacker        = require('css-mqpacker'),
     csswring        = require('csswring'),
     stylish         = require('jshint-stylish'),
@@ -85,16 +86,40 @@ gulp.task('build:css', function() {
         // but plumber keeps the gulp task from crashing
         .pipe(g.plumber())
         // initialize sourcemaps processor
+        // we must do this before processing the Sass content
         .pipe(g.sourcemaps.init({ loadMaps: true }))
         // pipe through sass/scss processor
         .pipe(g.sass(sassConfig))
-        .pipe(g.autoprefixer(config.autoprefixer))
-        .pipe(filter) // Don't write sourcemaps of sourcemaps, remember?
+        // pipe the resulting css through postcss processors
+        .pipe(g.postcss((function(postcssPlugins){
+                // if environment is set to production
+                // include css minification in the postprocessors list
+                if (params.environment === 'production') {
+                    postcssPlugins.push(csswring(config.csswring));
+                }
+                return postcssPlugins;
+            })([
+                // regardless of environment setting,
+                // run css output through autoprefixer and pack media queries
+                autoprefixer(config.autoprefixer),
+                mqpacker
+            ])
+        ))
+        // we're safe now so we can stop plumber
+        .pipe(g.plumber.stop())
+        // lint the css output if environment is development
+        .pipe(g.if(
+            params.environment === 'development',
+            g.csslint(config.csslint)
+        ))
+        .pipe(g.csslint.reporter())
+        // Don't write sourcemaps of sourcemaps
+        .pipe(filter)
         // write sourcemaps
         .pipe(g.sourcemaps.write('.', { includeContent: false }))
         // Restore original files
         .pipe(filter.restore())
-        // write processed sass files as css files to output destination
+        // write processed css to output destination
         .pipe(gulp.dest(config.sass.dest));
 
 });
@@ -333,12 +358,13 @@ gulp.task('delete', function(callback) {
  *  Lint CSS
  * =====================================================================
  */
-gulp.task('lint:css', function() {
-    var lintConfig = config.csslint;
+// gulp.task('lint:css', function() {
+//     var lintConfig = config.csslint;
 
-    return gulp.src(lintConfig.src)
-        .pipe(g.csslint(lintConfig.options));
-});
+//     return gulp.src(lintConfig.src)
+//         .pipe(g.csslint(lintConfig.options))
+//         .pipe(g.csslint.reporter());
+// });
 
 /* = Lint CSS */
 
@@ -367,7 +393,7 @@ gulp.task('watch', ['browsersync'], function() {
     var wc = config.watch;
 
     gulp.watch(wc.templates, ['reload:templates']);
-    gulp.watch(wc.sass, ['build:css', 'lint:css']);
+    gulp.watch(wc.sass, ['build:css']);
     gulp.watch(wc.scripts, ['lint:js', 'build:js']);
     gulp.watch(wc.images, ['copy:images']);
     gulp.watch(wc.svg, ['copy:fonts']);
