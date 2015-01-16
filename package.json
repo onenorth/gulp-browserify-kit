@@ -76,7 +76,7 @@
   },
   "browserify-shim": {
     "plugin": {
-      "exports": "plugin",
+      "exports": "jquery-plugin",
       "depends": [
         "jquery:$"
       ]
