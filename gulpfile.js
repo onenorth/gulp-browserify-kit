@@ -194,6 +194,30 @@ gulp.task('build:js', function(callback) {
 
 
 /**
+ *  Generate sprite and CSS file from png files
+ * =====================================================================
+ */
+gulp.task('build:sprites', function() {
+    var spriteConfig = config.sprites;
+
+    // use spritesmith to build the sprite image and sprite css
+    // from the constituent images
+    var spriteData = gulp
+                        .src(spriteConfig.src)
+                        .pipe(g.spritesmith(spriteConfig.options));
+
+    // pipe the sprite image to the configured image folder
+    spriteData.img
+        .pipe(gulp.dest(spriteConfig.dest.image));
+    // pipe the sprite css to the configured css folder
+    spriteData.css
+        .pipe(gulp.dest(spriteConfig.dest.css));
+});
+
+/* = Generate sprite and CSS file from png files */
+
+
+/**
  *  Build All process
  * =====================================================================
  */
@@ -232,9 +256,18 @@ gulp.task('copy:templates', function() {
         .pipe(gulp.dest(templateConfig.dest));
 });
 
+/* = Copy templates */
+
+
+/**
+ *  Reload templates
+ * =====================================================================
+ */
 gulp.task('reload:templates', ['copy:templates'], function() {
     browserSync.reload();
 });
+
+/* = Reload templates */
 
 
 /**
@@ -284,7 +317,7 @@ gulp.task('base64', ['build:css'], function() {
 
 
 /**
- *  Delete / Clean folders and files
+ *  Delete / Clean build folders and files
  * =====================================================================
  */
 gulp.task('delete', function(callback) {
@@ -293,7 +326,7 @@ gulp.task('delete', function(callback) {
     del(delConfig.src, callback);
 });
 
-/* = Delete / clean process */
+/* = Delete / clean build folders and files */
 
 
 /**
@@ -326,34 +359,8 @@ gulp.task('lint:js', function() {
 /* = Lint JS */
 
 
-
 /**
- *  Generate sprite and CSS file from png files
- * =====================================================================
- */
-gulp.task('build:sprites', function() {
-    var spriteConfig = config.sprites;
-
-    // use spritesmith to build the sprite image and sprite css
-    // from the constituent images
-    var spriteData = gulp
-                        .src(spriteConfig.src)
-                        .pipe(g.spritesmith(spriteConfig.options));
-
-    // pipe the sprite image to the configured image folder
-    spriteData.img
-        .pipe(gulp.dest(spriteConfig.dest.image));
-    // pipe the sprite css to the configured css folder
-    spriteData.css
-        .pipe(gulp.dest(spriteConfig.dest.css));
-});
-
-/* = Generate sprite and CSS file from png files */
-
-
-
-/**
- *  Start browsersync and watch for file changes
+ *  Watch task - start browser-sync and watch for file changes
  * =====================================================================
  */
 gulp.task('watch', ['browsersync'], function() {
@@ -367,148 +374,13 @@ gulp.task('watch', ['browsersync'], function() {
     gulp.watch(wc.sprites, ['build:sprites']);
 });
 
-/* = Start browsersync and watch for file changes */
-
-// ------------------------
-// Custom Task Definitions
-// ------------------------
-// var tasks = {
-
-//     // ------------------------
-//     // Delete build folder contents
-//     // ------------------------
-//     clean: function(callback) {
-//         del([_dest], callback);
-//     },
-
-//     // ------------------------
-//     // Copy static assets
-//     // ------------------------
-//     assets: function() {
-//         var cfg = config.assets;
-
-//         gutil.log('build flag: ', build);
-
-//         return gulp.src(cfg.src)
-//             .pipe(cached('assets')) // Ignore unchanged files
-//             .pipe(gulpif(!build, imagemin(cfg.imageminOptions))) // Optimize
-//             .pipe(gulp.dest(cfg.dest));
-//     },
-
-//     // ------------------------
-//     // Copy HTML templates
-//     // ------------------------
-//     templates: function() {
-//         var cfg = config.templates;
-
-//         return gulp.src(cfg.src)
-//             .pipe(cached('templates'))
-//             .pipe(gulp.dest(cfg.dest));
-//     },
-
-//     // ------------------------
-//     // JS Linting
-//     // ------------------------
-//     lint: function() {
-//         var cfg = config.lint;
-//         return gulp.src(cfg.src)
-//             .pipe(cached('jshint'))
-//             .pipe(jshint())
-//             .pipe(jshint.reporter(cfg.reporter))
-//             .pipe(jshint.reporter('fail'));
-//     },
-
-//     // ------------------------
-//     // Image Optimization (imagemin)
-//     //
-//     // NOTE: Should not be used as a watch task.
-//     //       Stop any watch task before running this.
-//     // ------------------------
-//     optimize: function() {
-//         var cfg = config.assets;
-
-//         return gulp.src(cfg.imgSrc)
-//             .pipe(imagemin(cfg.imageminOptions))
-//             .pipe(gulp.dest(cfg.imgDest));
-//     },
-
-//     // ------------------------
-//     // Testing (mocha)
-//     // ------------------------
-//     test: function() {
-//         var cfg = config.testing;
-
-//         return gulp.src(cfg.src, { read: false })
-//             .pipe(mocha(cfg.mochaOptions));
-//     }
-// };
-
-// ------------------------
-// BrowserSync Reload Tasks
-// ------------------------
-// gulp.task('reload-sass', ['sass'], function() {
-//     browserSync.reload();
-// });
-
-// gulp.task('reload-js', ['browserify'], function() {
-//     browserSync.reload();
-// });
-
-// gulp.task('reload-templates', ['templates'], function() {
-//     browserSync.reload();
-// });
-
-// ------------------------
-// Custom Tasks
-// ------------------------
-
-// clean task
-// gulp.task('clean', tasks.clean);
-
-// // if we are running a production-based build,
-// // we need to run the clean function before some tasks
-// var req = build ? ['clean'] : [];
-
-// // individual tasks
-// gulp.task('templates', req, tasks.templates);
-// gulp.task('assets', req, tasks.assets);
-// gulp.task('assets:image-optimize', req, tasks.optimize);
-// gulp.task('sass', req, tasks.sass);
-// gulp.task('browserify', req, tasks.browserify);
-// gulp.task('lint', tasks.lint);
-// gulp.task('test', tasks.test);
+/* = Watch task */
 
 
-// ------------------------
-// Development Watch Task
-// ------------------------
-// gulp.task('watch', ['assets', 'templates', 'sass', 'browserify', 'browser-sync'], function() {
-
-//     // Sass
-//     gulp.watch(config.sass.src, ['reload-sass']);
-
-//     // JS
-//     gulp.watch(config.scripts.src, ['lint', 'reload-js']);
-
-//     // Templates
-//     gulp.watch(config.templates.src, ['reload-templates']);
-
-//     // Log to console that we are now watching for changes
-//     gutil.log(gutil.colors.bgGreen("Now watching for changes..."));
-// });
-
-// ------------------------
-// Build Task
-// ------------------------
-gulp.task('build', [
-    'clean',
-    'templates',
-    'assets',
-    'sass',
-    'browserify'
-]);
-
-// ------------------------
-// Default Task
-// ------------------------
+/**
+ *  Default task - task run when no task runner params are specified
+ * =====================================================================
+ */
 gulp.task('default', ['watch']);
+
+/* = Default task */
