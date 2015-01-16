@@ -15,6 +15,11 @@ Includes example tasks for:
 * Gulp task error handling (optional Notification Center for MacOS)
 * Simple Production deployment (rsync)
 
+## How To Use This Repository
+
+* Clone the repository to a folder on your computer
+* Navigate to the repository project folder in your terminal application
+* Run any one of the available package commands to start the project in one of several modes
 
 ## Installing dependencies
 
