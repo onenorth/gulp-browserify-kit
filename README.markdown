@@ -19,6 +19,7 @@ Includes example tasks for:
 
 * Clone the repository to a folder on your computer
 * Navigate to the repository project folder in your terminal application
+* Run `npm install` to install the project's required dependencies
 * Run any one of the available package commands to start the project in one of several modes
 
 ## Installing dependencies
