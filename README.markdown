@@ -36,7 +36,7 @@ options that are available are listed in the `scripts` section of the package.js
 * build (build a production-ready version of the project, optimizing all relevant files, without running a server or watching for file changes)
 * test (start a testing harness and execute all test tasks)
 
-#### `npm run dev`
+#### Dev (`npm run dev`)
 In order to run the application in development mode, you will use the gulp
 development task.
 
@@ -44,24 +44,6 @@ development task.
 > npm run dev
 ```
 
-
-## Running ```gulp```
-
-Now that the gulp install is sqaured away, you can run ```gulp``` from the command line to kick things off.
-
-When you run ```gulp``` from the command line, you will automatically execute the ```default``` task described in the ```gulp/tasks/default.js``` file.
-
-The ```default``` task has the following task dependencies:
-
-* Sass
-* images
-* markup
-* watch
-
-
-### gulp production
-There is also a task that illustrates production environment use, which can be run with ```gulp prouction```, which will build an optimized output set of compressed css and js files to a ```build```folder, in addition to display file sizes in the console. The ```production``` task is a shortcut for running the tasks ```['iamges', 'minifyCss', 'uglifyJs'].
-
 ## Configuration
 
-All project-specific settings pertaining to gulp are abstracted and managed in a config object defined in the ```gulp\config.js``` file. You should examine this file, and change the settings to match your project requirements.
+All project-specific settings pertaining to the application are managed in a config object defined in the `config.js` file located at the root of the project. You should examine this file, making any necessary changes to accomodate your environment and project requirements.
