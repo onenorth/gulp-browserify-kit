@@ -1,0 +1,15 @@
+{
+    'person': {
+        'firstName': 'Chris',
+        'lastName': 'Wigley',
+        'company': {
+            'name': 'One North Interactive'
+        },
+        'address': {
+            'street': '1 N Dearborn St',
+            'city': 'Chicago',
+            'state': 'Illinois',
+            'postal': '60626'
+        }
+    }
+}

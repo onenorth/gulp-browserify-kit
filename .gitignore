@@ -1,11 +1,17 @@
 .DS_Store
 .sass-cache
-build
 Desktop.ini
 node_modules
 Thumbs.db
+
+## User files
 *.sublime-project
 *.sublime-workspace
+
+## Generated folders and files
+[Dd]ist
+[Pp]roduction
+*.map
 
 ## only for master branch
 [Gg]ulp/tasks

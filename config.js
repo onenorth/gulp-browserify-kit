@@ -4,57 +4,58 @@
  */
 
 var src                  = 'app',
-    build                = 'build',
-    development          = 'build/development',
-    production           = 'build/production',
-    srcAssets            = 'app/assets',
-    developmentAssets    = 'build/assets',
-    productionAssets     = 'build/production/assets';
+    build                = 'dist',
+    development          = build,
+    production           = build + '/production',
+    srcAssets            = src + '/assets',
+    developmentAssets    = development + '/assets',
+    productionAssets     = production + '/assets';
 
 module.exports = (function(config) {
 
-    // gulp default params
-    config.gulpParams = {
-        environment: 'development'
-    };
-
     config.browsersync = {
-        development: {
-            server: {
-                // Start a simple web server pointed at the build folder
-                baseDir: [build, src]
-            },
-            port: process.env.PORT || 9999,
-            files: [
-                developmentAssets + '/css/*.css',
-                developmentAssets + '/js/**/*.js',
-                developmentAssets + '/images/**',
-                developmentAssets + '/fonts/**'
-            ]
+        logPrefix: 'KIT',
+        // notify: true,
+        server: {
+            // Start a simple web server pointed at the build and src folders
+            // src folder is included because of sass source maps - sourcemaps will be created in the app/assets/sass folder when sass files are processed
+            baseDir: [build, src]
         },
-        production: {
-            server: {
-                baseDir: [production]
-            },
-            port: 9998
-        }
+        port: process.env.PORT || 9999,
+        files: [
+            developmentAssets + '/styles/*.css',
+            developmentAssets + '/js/**/*.js',
+            developmentAssets + '/images/**',
+            developmentAssets + '/fonts/**',
+            development + '/data/**/*.json'
+        ],
+        browser: ["google chrome"]
     };
 
-    config.delete = {
-        src: [developmentAssets]
+    /**
+     * Clean
+     *
+     * [1] - Use globbing pattern to delete everything in the dist folder
+     * [2] - Feel free to add additional files/directories here, or exclude
+     *       files with the '!' prefix, such as '!dist/assets/fonts'
+     */
+    config.clean = {
+        src: [build]
     };
 
     config.sass = {
-        src:     srcAssets + '/sass/**/*.{sass,scss}',
-        dest:    developmentAssets + '/css',
-        options: {}
+        src:     [srcAssets + '/styles/**/*.{sass,scss}'],
+        dest:    developmentAssets + '/styles',
+        options: {
+            sourcemap: true,
+            includePaths: ['node_modules']        }
     };
 
     config.templates = {
         src: [
             src + '/layouts/**/*',
             src + '/includes/**/*',
-            src + '*.html'
+            src + '/*.html'
         ],
         dest: development
     };
@@ -62,14 +63,16 @@ module.exports = (function(config) {
     // autoprefixer options
     config.autoprefixer = {
         browsers: [
-            'Android 2.3',
-            'Android >= 4',
-            'Chrome >= 20',
-            'Firefox >= 24', // Firefox 24 is the latest ESR
-            'Explorer >= 8',
-            'iOS >= 6',
-            'Opera >= 12',
-            'Safari >= 6'
+            'ie >= 8',
+            'ie_mob >= 8',
+            'ff >= 30',
+            'chrome >= 32',
+            'safari >= 6',
+            'opera >= 23',
+            'ios >= 6',
+            'android 2.3',
+            'android >= 4.3',
+            'bb >= 10'
         ],
         cascade: true
     };
@@ -113,7 +116,7 @@ module.exports = (function(config) {
     };
 
     config.images = {
-        src:     srcAssets + '/images/**/*',
+        src:     srcAssets + '/images/**/*.{gif,jpg,jpeg,png,tiff}',
         dest:    developmentAssets + '/images'
     };
 
@@ -129,21 +132,14 @@ module.exports = (function(config) {
         options: {}
     };
 
-    config.copyfonts = {
-        development: {
-            src:  srcAssets + '/fonts/*',
-            dest: developmentAssets + '/fonts'
-        },
-
-        production: {
-            src: developmentAssets + '/fonts/*',
-            dest: productionAssets + '/fonts'
-        }
+    config.fonts = {
+        src:  srcAssets + '/fonts/**',
+        dest: developmentAssets + '/fonts'
     };
 
     config.base64 = {
-        src:     developmentAssets + '/css/*.css',
-        dest:    developmentAssets + '/css',
+        src:     developmentAssets + '/styles/*.css',
+        dest:    developmentAssets + '/styles',
         options: {
             baseDir:      build,
             extensions:   ['png'],
@@ -220,8 +216,8 @@ module.exports = (function(config) {
     config.optimize = {
         // CSS Optimization
         css: {
-            src:     developmentAssets + '/css/*.css',
-            dest:    productionAssets + '/css/',
+            src:     developmentAssets + '/styles/*.css',
+            dest:    productionAssets + '/styles/',
             options: {
                 keepSpecialComments: 0
             }
@@ -301,17 +297,6 @@ module.exports = (function(config) {
     config.mocha = {
         'ui': 'bdd',
         'reporter': 'spec'
-    };
-
-    // marked options
-    config.marked = {
-        gfm: true,
-        tables: true,
-        breaks: false,
-        pedantic: false,
-        sanitize: false,
-        smartLists: true,
-        smartypants: false
     };
 
     // config sync options
