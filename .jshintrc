@@ -6,7 +6,7 @@
   "expr": true,
   "forin": false,
   "immed": true,
-  "indent": 2,
+  "indent": 4,
   "latedef": true,
   "loopfunc": true,
   "newcap": false,
