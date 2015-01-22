@@ -3,6 +3,7 @@
 Desktop.ini
 node_modules
 Thumbs.db
+build
 
 ## User files
 *.sublime-project
