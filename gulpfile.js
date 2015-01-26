@@ -77,8 +77,6 @@ var watch = argv._.length ? argv._[0] === 'watch' : true;
 // load gulp task config.js configuration file
 var gulpConfig = require(process.cwd() + '/config.js');
 
-$.util.log(gulpConfig);
-
 // modules installed with npm that are used
 // on the front-end and should be copied
 // over from the node_modules folder into
@@ -239,7 +237,6 @@ gulp.task('scripts', function(callback) {
             // handle shared dependencies
             // bundler.require exposes modules externally
             if( bundleConfig.require ) {
-                $.util.log("require", bundleConfig.require);
                 bundler.require(bundleConfig.require);
             }
 
