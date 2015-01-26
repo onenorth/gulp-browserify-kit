@@ -11,11 +11,11 @@
   },
   "private": true,
   "scripts": {
-    "build": "./node_modules/.bin/gulp build:production",
-    "build-dev": "./node_modules/.bin/gulp build",
-    "dev": "./node_modules/.bin/gulp watch",
-    "test": "./node_modules/.bin/mocha --reporter spec",
-    "postinstall": "./node_modules/.bin/gulp default"
+    "build": "gulp build:production",
+    "build-dev": "gulp build",
+    "dev": "gulp watch",
+    "test": "mocha --reporter spec",
+    "postinstall": "gulp default"
   },
   "repository": {
     "type": "git",
