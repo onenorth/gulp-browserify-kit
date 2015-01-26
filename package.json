@@ -24,6 +24,9 @@
   "bugs": {
     "url": "https://github.com/onenorth/gulp-browserify-kit/issues"
   },
+  "engines": {
+    "node": ">=0.10.0"
+  },
   "browser": {
     "underscore": "backbone/node_modules/underscore",
     "jquery": "./node_modules/jquery/dist/jquery.js"
