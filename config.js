@@ -15,12 +15,12 @@ module.exports = (function(config) {
 
     config.browsersync = {
         logPrefix: 'KIT',
-        // notify: true,
         server: {
             // Start a simple web server pointed at the build and src folders
             // src folder is included because of sass source maps - sourcemaps will be created in the app/assets/sass folder when sass files are processed
             baseDir: [build, src]
         },
+        //proxy: 'mywebsite.dev',
         port: process.env.PORT || 9999,
         files: [
             developmentAssets + '/styles/*.css',
@@ -29,7 +29,7 @@ module.exports = (function(config) {
             developmentAssets + '/fonts/**',
             development + '/data/**/*.json'
         ],
-        browser: ["google chrome"]
+        browser: ["safari"]
     };
 
     /**
@@ -48,7 +48,8 @@ module.exports = (function(config) {
         dest:    developmentAssets + '/styles',
         options: {
             sourcemap: true,
-            includePaths: ['node_modules']        }
+            includePaths: ['node_modules']
+        }
     };
 
     config.templates = {
@@ -77,16 +78,8 @@ module.exports = (function(config) {
         cascade: true
     };
 
-    // csswring options
-    config.csswring = {
-        preserveHacks: true,
-        removeAllComments: true
-    };
-
     config.browserify = {
-        // enable source maps
-        debug: true,
-        // additional file extensions that are allowed
+        // Additional file extensions to make optional
         extensions: ['.coffee', '.hbs'],
         // generate a bundle for each bundle config listed below
         // for example, here we are creating a global.js bundle
@@ -96,13 +89,15 @@ module.exports = (function(config) {
             entries:    './' + srcAssets + '/js/global.js',
             dest:       developmentAssets + '/js',
             outputName: 'global.js',
+            paths: ['./node_modules'],
             // modules used by the global
             // module, that you also want
             // available to other modules
             // and therefore do not want
             // to also include (i.e.,
             // duplicate) in another bundle
-            require:    ['jquery','lodash']
+            // see https://github.com/substack/node-browserify#brequirefile-opts
+            require:    ['jquery', 'backbone/node_modules/underscore']
         }, {
             entries:    './' + srcAssets + '/js/home-page.js',
             dest:       developmentAssets + '/js',
@@ -111,7 +106,7 @@ module.exports = (function(config) {
             // in this bundle, but that you
             // do not want to include in this
             // bundle
-            external:   ['jquery','lodash']
+            external:   ['jquery','underscore']
         }]
     };
 
@@ -156,7 +151,7 @@ module.exports = (function(config) {
             src + '/**/*.html',
             src + '/*'
         ],
-        sass:       srcAssets + '/sass/**/*.{sass,scss}',
+        sass:       srcAssets + '/styles/**/*.{sass,scss}',
         scripts:    srcAssets + '/js/*/*.js',
         images:     srcAssets + '/images/**/*',
         sprites:    srcAssets + '/images/**/*.png',
@@ -189,7 +184,7 @@ module.exports = (function(config) {
     config.sprites = {
         src: srcAssets + '/images/sprites/icon/*.png',
         dest: {
-            css: srcAssets + '/sass/base',
+            css: srcAssets + '/stylesq/base',
             image: srcAssets + '/images/sprites/'
         },
         options: {

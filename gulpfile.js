@@ -19,6 +19,7 @@ var gulp            = require('gulp'),
     buffer          = require('vinyl-buffer'),
     source          = require('vinyl-source-stream'),
     prettyHrtime    = require('pretty-hrtime'),
+    _               = require('lodash'),
     reload          = browserSync.reload;
 
 /**
@@ -50,6 +51,9 @@ var bundleLogger = {
 var handleErrors = function() {
     var args = Array.prototype.slice.call(arguments);
 
+    // make some noise
+    $.util.beep();
+
     // push error to notification center
     $.notify.onError({
         title: "Compile Error",
@@ -71,7 +75,9 @@ var build = argv._.length ? argv._[0] === 'build' : false;
 var watch = argv._.length ? argv._[0] === 'watch' : true;
 
 // load gulp task config.js configuration file
-var config = require(process.cwd() + '/config.js');
+var gulpConfig = require(process.cwd() + '/config.js');
+
+$.util.log(gulpConfig);
 
 // modules installed with npm that are used
 // on the front-end and should be copied
@@ -87,9 +93,11 @@ var frontEndModules = [
  * =====================================================================
  */
 gulp.task('csslint', function() {
-    return gulp.src(config.csslint.src)
+    var config = gulpConfig.csslint;
+
+    return gulp.src(config.src)
         .pipe($.cached('csslint'))
-        .pipe($.csslint(config.csslint.options));
+        .pipe($.csslint(config.options));
 });
 
 /**
@@ -97,7 +105,9 @@ gulp.task('csslint', function() {
  * =====================================================================
  */
 gulp.task('jshint', function () {
-    return gulp.src(config.jshint.src)
+    var config = gulpConfig.jshint;
+
+    return gulp.src(config.src)
         .pipe($.cached('jshint'))
         .pipe($.jshint())
         .pipe($.jshint.reporter('jshint-stylish'))
@@ -110,13 +120,15 @@ gulp.task('jshint', function () {
  * =====================================================================
  */
 gulp.task('images', function () {
-    return gulp.src(config.images.src)
+    var config = gulpConfig.images;
+
+    return gulp.src(config.src)
         // we use gulp-changed instead of gulp-cached because
         // we don't want to keep large binary data in memory
         // gulp-changed checks file timestamps, and is much more
         // efficient than gulp-cached when handling binary data
-        .pipe($.changed(config.images.dest))
-        .pipe(gulp.dest(config.images.dest));
+        .pipe($.changed(config.dest))
+        .pipe(gulp.dest(config.dest));
 });
 
 /**
@@ -124,9 +136,11 @@ gulp.task('images', function () {
  * =====================================================================
  */
 gulp.task('base64', ['styles'], function() {
-    return gulp.src(config.base64.src)
-        .pipe($.base64(config.base64.options))
-        .pipe(gulp.dest(config.base64.dest));
+    var config = gulpConfig.base64;
+
+    return gulp.src(config.src)
+        .pipe($.base64(config.options))
+        .pipe(gulp.dest(config.dest));
 });
 
 /**
@@ -134,8 +148,10 @@ gulp.task('base64', ['styles'], function() {
  * =====================================================================
  */
 gulp.task('fonts', function () {
-    return gulp.src(config.fonts.src)
-        .pipe(gulp.dest(config.fonts.dest));
+    var config = gulpConfig.fonts;
+
+    return gulp.src(config.src)
+        .pipe(gulp.dest(config.dest));
 });
 
 
@@ -146,20 +162,23 @@ gulp.task('fonts', function () {
  * =====================================================================
  */
 gulp.task('styles', function () {
-    config.sass.options.onError = browserSync.notify;
+    var config = gulpConfig.sass;
+
+    //config.options.onError = browserSync.notify;
 
     browserSync.notify('Compiling Sass');
     // make this more-specific; exclude partials from source
-    return gulp.src(config.sass.src)
-        .pipe($.plumber())
+    return gulp.src(config.src)
+        //.pipe($.plumber())
         .pipe($.sourcemaps.init())
         // pipe the changed files through sass transformer
-        .pipe($.sass(config.sass.options))
+        .pipe($.sass(config.options))
+        .on('error', handleErrors)
         // autoprefix resulting css
-        .pipe($.autoprefixer(config.autoprefixer))
+        .pipe($.autoprefixer(gulpConfig.autoprefixer))
         .pipe($.sourcemaps.write('./', {includeContent: false}))
         // create/write the resulting stylesheet css file
-        .pipe(gulp.dest(config.sass.dest));
+        .pipe(gulp.dest(config.dest));
 });
 
 
@@ -173,24 +192,23 @@ gulp.task('styles', function () {
 
 gulp.task('scripts', function(callback) {
 
+    var config = gulpConfig.browserify;
+
     browserSync.notify('Compiling JavaScript', 1000);
 
-    var settings = config.browserify;
-
-    var bundleQueue = settings.bundleConfigs.length;
+    var bundleQueue = config.bundleConfigs.length;
 
     var browserifyThis = function( bundleConfig ) {
 
-        var bundler = browserify({
-            // watchify args
-            cache: {}, packageCache: {}, fullPaths: true,
-            // app entry point
-            entries: bundleConfig.entries,
-            // optional file extensions allowed in require
-            extensions: settings.extensions,
-            // should enable source maps?
-            debug: settings.debug
-        });
+        if (watch) {
+            _.extend(bundleConfig, watchify.args, { debug: true,
+                extensions: config.extensions
+            });
+
+            bundleConfig = _.omit(bundleConfig, ['external', 'require']);
+        }
+
+        var bundler = browserify(bundleConfig);
 
         function bundle() {
             // log when starting a bundle
@@ -205,21 +223,23 @@ gulp.task('scripts', function(callback) {
                 .pipe(source(bundleConfig.outputName))
                 // output destination
                 .pipe(gulp.dest(bundleConfig.dest))
-                .on('end', reportFinished);
+                .on('end', reportFinished)
+                .pipe(browserSync.reload({stream:true}));
         };
 
-        if (global.isWatching) {
-            // log informational message to console indicating that
-            // watchify is enabled
-            bundleLogger.watch(bundleConfig.outputName);
+        if (watch) {
             // wrap with watchify and re-bundle
             bundler = watchify(bundler);
             // re-bundle after updates
             bundler.on('update', bundle);
+            // log informational message to console indicating that
+            // watchify is enabled
+            bundleLogger.watch(bundleConfig.outputName);
         } else {
             // handle shared dependencies
             // bundler.require exposes modules externally
             if( bundleConfig.require ) {
+                $.util.log("require", bundleConfig.require);
                 bundler.require(bundleConfig.require);
             }
 
@@ -249,7 +269,7 @@ gulp.task('scripts', function(callback) {
     };
 
     // Bundle each specified bundle config
-    settings.bundleConfigs.forEach(browserifyThis);
+    config.bundleConfigs.forEach(browserifyThis);
 });
 
 /* = JavaScript processing with Browserify */
@@ -260,9 +280,11 @@ gulp.task('scripts', function(callback) {
  * =====================================================================
  */
 gulp.task('templates', function () {
-    return gulp.src(config.templates.src)
+    var config = gulpConfig.templates;
+
+    return gulp.src(config.src)
         .pipe($.cached('templates'))
-        .pipe(gulp.dest(config.templates.dest));
+        .pipe(gulp.dest(config.dest));
 });
 
 
@@ -275,7 +297,9 @@ gulp.task('templates', function () {
  * =====================================================================
  */
 gulp.task('clean', function(callback) {
-    del(config.clean.src, callback);
+    var config = gulpConfig.clean;
+
+    del(config.src, callback);
 });
 
 
@@ -284,7 +308,9 @@ gulp.task('clean', function(callback) {
  * =====================================================================
  */
 gulp.task('browsersync', ['build'], function() {
-    browserSync(config.browsersync);
+    var config = gulpConfig.browsersync;
+
+    browserSync(config);
 });
 
 // need to use filter so as only to copy over fed modules
@@ -318,23 +344,29 @@ gulp.task('extras', function() {
 });
 
 gulp.task('optimize:css', function() {
-    return gulp.src(config.optimize.css.src)
-        .pipe($.minifyCss(config.optimize.css.options))
-        .pipe(gulp.dest(config.optimize.css.dest))
+    var config = gulpConfig.optimize.css;
+
+    return gulp.src(config.src)
+        .pipe($.minifyCss(config.options))
+        .pipe(gulp.dest(config.dest))
         .pipe($.size());
 });
 
 gulp.task('optimize:js', function() {
-    return gulp.src(config.optimize.js.src)
-        .pipe($.uglify(config.optimize.js.options))
-        .pipe(gulp.dest(config.optimize.js.dest))
+    var config = gulpConfig.optimize.js;
+
+    return gulp.src(config.src)
+        .pipe($.uglify(config.options))
+        .pipe(gulp.dest(config.dest))
         .pipe($.size());
 });
 
 gulp.task('optimize:images', function() {
-    return gulp.src(config.optimize.images.src)
-        .pipe($.imagemin(config.optimize.images.options))
-        .pipe(gulp.dest(config.optimize.images.dest))
+    var config = gulpConfig.optimize.images;
+
+    return gulp.src(config.src)
+        .pipe($.imagemin(config.options))
+        .pipe(gulp.dest(config.dest))
         .pipe($.size());
 });
 
@@ -367,6 +399,7 @@ gulp.task('build', function(callback) {
 /**
  * Production Build
  *
+ * Just like Build, but with optimization tasks as well
  * =====================================================================
  */
 gulp.task('build:production', function(callback) {
@@ -390,212 +423,14 @@ gulp.task('build:production', function(callback) {
 
 // Watch task
 gulp.task('watch', ['browsersync'], function() {
-    gulp.watch(config.watch.templates, ['templates']);
-    gulp.watch(config.watch.sass, ['styles', 'csslint']);
-    gulp.watch(config.watch.scripts, ['scripts', 'jshint']);
-    gulp.watch(config.watch.images, ['images']);
-    // gulp.watch(config.watch.svg, ['fonts']);
-    gulp.watch(config.watch.sprites, ['sprites']);
+    var config = gulpConfig.watch;
 
-    // gulp.watch(['app/data/**/.json'], ['json', reload]);
-    // gulp.watch(['app/**/*.html'], ['html', reload]);
-    // gulp.watch(['app/assets/styles/**/*.{sass,scss}'], ['styles', reload]);
-    // gulp.watch(['app/assets/images/**/*'], ['images', reload]);
+    gulp.watch(config.templates, ['templates']);
+    gulp.watch(config.sass, ['styles', 'csslint']);
+    gulp.watch(config.scripts, ['scripts', 'jshint']);
+    gulp.watch(config.images, ['images']);
+    gulp.watch(config.sprites, ['sprites']);
 });
 
 // Default task
 gulp.task('default', ['build']);
-
-
-/**
- *  Generate sprite and CSS file from png files
- * =====================================================================
- */
-// gulp.task('build:sprites', function() {
-//     var spriteConfig = config.sprites;
-
-//     // use spritesmith to build the sprite image and sprite css
-//     // from the constituent images
-//     var spriteData = gulp
-//                         .src(spriteConfig.src)
-//                         .pipe(g.spritesmith(spriteConfig.options));
-
-//     // pipe the sprite image to the configured image folder
-//     spriteData.img
-//         .pipe(gulp.dest(spriteConfig.dest.image));
-//     // pipe the sprite css to the configured css folder
-//     spriteData.css
-//         .pipe(gulp.dest(spriteConfig.dest.css));
-// });
-
-// /* = Generate sprite and CSS file from png files */
-
-
-// /**
-//  *  Build All process
-//  * =====================================================================
-//  */
-// gulp.task('build:all', function(callback) {
-//     // first, run the delete task
-//     // then run the array of tasks (they will run in parallel)
-//     // then run the base64 task
-//     // finally, execute optional callback
-//     // we need to use an order, controlled sequence here because
-//     // we don't want to run the base64 task until
-//     // the sass has been processed into css
-//     runSequence('delete',
-//     [
-//         'build:css',
-//         'build:js',
-//         'copy:templates',
-//         'copy:images',
-//         'copy:fonts'
-//     ],
-//     'base64',
-//     callback);
-// });
-
-// /* = Build all */
-
-// /**
-//  *  Copy templates (e.g., layouts)
-//  * =====================================================================
-//  */
-// gulp.task('copy:templates', function() {
-//     var templateConfig = config.templates;
-
-//     browserSync.notify('Copying Templates');
-
-//     return gulp.src(templateConfig.src)
-//         .pipe(gulp.dest(templateConfig.dest));
-// });
-
-// /* = Copy templates */
-
-
-// /**
-//  *  Reload templates
-//  * =====================================================================
-//  */
-// gulp.task('reload:templates', ['copy:templates'], function() {
-//     browserSync.reload();
-// });
-
-// /* = Reload templates */
-
-
-// /**
-//  *  Copy changed images to build folder
-//  * =====================================================================
-//  */
-// gulp.task('copy:images', function() {
-//     var imageConfig = config.images;
-
-//     return gulp.src(imageConfig.src)
-//         .pipe(g.changed(imageConfig.dest)) // Ignore unchanged files
-//         .pipe(gulp.dest(imageConfig.dest));
-// });
-
-// /* = Copy changed images */
-
-
-// *
-//  *  Copy fonts to build folder
-//  * =====================================================================
-
-// gulp.task('copy:fonts', function() {
-//     var fontConfig = config.copyfonts.development;
-
-//     return gulp.src(fontConfig.src)
-//         .pipe(g.changed(fontConfig.dest)) // Ignore changed files
-//         .pipe(gulp.dest(fontConfig.dest));
-// });
-
-// /* = Copy fonts */
-
-
-
-// /**
-//  *  Replace image URLs in CSS with base64 encoded data
-//  * =====================================================================
-//  */
-// gulp.task('base64', ['build:css'], function() {
-//     var base64Config = config.base64;
-
-//     return gulp.src(base64Config.src)
-//         .pipe(g.base64(base64Config.options))
-//         .pipe(gulp.dest(base64Config.dest));
-// });
-
-// /* = Replace image URLs in CSS with base64 encoded data */
-
-
-// /**
-//  *  Delete / Clean build folders and files
-//  * =====================================================================
-//  */
-// gulp.task('delete', function(callback) {
-//     var delConfig = config.delete;
-
-//     del(delConfig.src, callback);
-// });
-
-// /* = Delete / clean build folders and files */
-
-
-// /**
-//  *  Lint CSS
-//  * =====================================================================
-//  */
-// // gulp.task('lint:css', function() {
-// //     var lintConfig = config.csslint;
-
-// //     return gulp.src(lintConfig.src)
-// //         .pipe(g.csslint(lintConfig.options))
-// //         .pipe(g.csslint.reporter());
-// // });
-
-// /* = Lint CSS */
-
-
-
-// /**
-//  *  Lint JS
-//  * =====================================================================
-//  */
-// gulp.task('lint:js', function() {
-//     var lintConfig = config.jshint;
-
-//     return gulp.src(lintConfig.src)
-//         .pipe(g.jshint(lintConfig.options.level))
-//         .pipe(g.jshint.reporter(lintConfig.options.reporter));
-// });
-
-// /* = Lint JS */
-
-
-// /**
-//  *  Watch task - start browser-sync and watch for file changes
-//  * =====================================================================
-//  */
-// gulp.task('watch', ['browsersync'], function() {
-//     var wc = config.watch;
-
-//     gulp.watch(wc.templates, ['reload:templates']);
-//     gulp.watch(wc.sass, ['build:css']);
-//     gulp.watch(wc.scripts, ['lint:js', 'build:js']);
-//     gulp.watch(wc.images, ['copy:images']);
-//     gulp.watch(wc.svg, ['copy:fonts']);
-//     gulp.watch(wc.sprites, ['build:sprites']);
-// });
-
-// /* = Watch task */
-
-
-// /**
-//  *  Default task - task run when no task runner params are specified
-//  * =====================================================================
-//  */
-// gulp.task('default', ['watch']);
-
-/* = Default task */

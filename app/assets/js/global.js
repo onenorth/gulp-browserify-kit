@@ -1,11 +1,10 @@
-'use strict';
+var Backbone, _;
 
-var _ = require('underscore');
-var Backbone = require('backbone');
-
+_ = require('underscore');
+Backbone = require('backbone');
 Backbone.$ = require('jquery');
 
-//var jqueryPlugin = require('some-jquery-plugin');
+//var jqueryPlugin = require('jquery-plugin');
 
 
 (function() {
